@@ -76,6 +76,20 @@ const TodoPage: React.FC = () => {
     navigate("/login");
   };
 
+  const editTask = async (updatedTask: Task) => {
+    const userRef = doc(db, "users", auth.currentUser!.uid);
+
+    const updatedTasks = tasks.map((task) =>
+      task.id === updatedTask.id ? updatedTask : task
+    );
+
+    await updateDoc(userRef, {
+      tasks: updatedTasks,
+    });
+
+    setTasks(updatedTasks);
+  };
+
   const homeTasks = tasks.filter((task) => task.category === "Home");
   const workTasks = tasks.filter((task) => task.category === "Work");
 
@@ -105,12 +119,14 @@ const TodoPage: React.FC = () => {
         tasks={homeTasks}
         onToggleComplete={toggleComplete}
         onRemove={removeTask}
+        onEdit={editTask}
       />
       <TaskList
         title="Робочі задачі"
         tasks={workTasks}
         onToggleComplete={toggleComplete}
         onRemove={removeTask}
+        onEdit={editTask}
       />
     </div>
   );
