@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { auth, db } from "../firebase.ts";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import TaskList from "../components/taskList/TaskList.tsx";
 
 interface Task {
@@ -16,6 +16,12 @@ const TodoPage: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState<string>("");
   const [category, setCategory] = useState<string>("Home");
+
+  const [role, setRole] = useState<string>("user");
+  const [emailToAdd, setEmailToAdd] = useState<string>("");
+  const [showAddUserModal, setShowAddUserModal] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,6 +31,7 @@ const TodoPage: React.FC = () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setTasks(docSnap.data().tasks || []);
+          setRole(docSnap.data().role || "user");
         }
       } else {
         navigate("/login");
@@ -90,14 +97,71 @@ const TodoPage: React.FC = () => {
     setTasks(updatedTasks);
   };
 
+  const handleAddUser = async () => {
+    try {
+      const userRef = doc(db, "users", emailToAdd);
+      const docSnap = await getDoc(userRef);
+
+      if (docSnap.exists()) {
+        setError("Користувач з такою електронною поштою вже існує.");
+      } else {
+        await setDoc(doc(db, "users", emailToAdd), {
+          email: emailToAdd,
+          role: "user",
+          tasks: [],
+        });
+
+        setShowAddUserModal(false);
+        setEmailToAdd("");
+        setError(null);
+      }
+    } catch (err) {
+      setError("Сталася помилка при додаванні користувача.");
+    }
+  };
+
   const homeTasks = tasks.filter((task) => task.category === "Home");
   const workTasks = tasks.filter((task) => task.category === "Work");
 
   return (
     <div className="p-6 container xl mx-auto">
-      <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded mb-6 hover:bg-red-900 ease-out duration-300">
+      <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded mb-6 hover:bg-red-900 ease-out duration-300 mr-6">
         Вийти
       </button>
+
+      {role === "superAdmin" && (
+        <button
+          onClick={() => setShowAddUserModal(true)}
+          className="bg-green-500 text-white px-4 py-2 rounded mb-6 hover:bg-green-900 ease-out duration-300"
+        >
+          Додати користувача
+        </button>
+      )}
+
+      {showAddUserModal && (
+        <div className="modal mb-10">
+          <h3>Додати користувача</h3>
+          <input
+            type="email"
+            value={emailToAdd}
+            onChange={(e) => setEmailToAdd(e.target.value)}
+            placeholder="Введіть електронну пошту"
+            className="border p-2 mb-2 w-full"
+          />
+          <button onClick={handleAddUser} className="bg-blue-500 text-white px-4 py-2 rounded mb-2 mr-2">
+            Додати
+          </button>
+          <button
+            onClick={() => setShowAddUserModal(false)}
+            className="bg-gray-500 text-white px-4 py-2 rounded mb-2"
+          >
+            Закрити
+          </button>
+
+          {error && <p className="text-red-500">{error}</p>}
+        </div>
+      )}
+
       <div className="mb-5">
         <input
           type="text"

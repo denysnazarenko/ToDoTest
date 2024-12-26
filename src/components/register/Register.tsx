@@ -8,6 +8,7 @@ const Register: React.FC = () => {
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [role, setRole] = useState<string>("user");
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -21,6 +22,7 @@ const Register: React.FC = () => {
       await setDoc(doc(db, "users", user.uid), {
         name,
         email,
+        role,
         tasks: [],
       });
 
@@ -58,6 +60,16 @@ const Register: React.FC = () => {
           className="border p-2 mb-2 w-full"
           required
         />
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="border p-2 mb-2 w-full"
+          required
+        >
+          <option value="user">Користувач</option>
+          <option value="admin">Адмін</option>
+          <option value="superAdmin">Супер адмін</option>
+        </select>
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
           Зареєструватися
