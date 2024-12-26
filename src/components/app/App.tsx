@@ -1,11 +1,19 @@
-import React from 'react';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "../login/Login.tsx";
+import Register from "../register/Register.tsx";
+import TodoPage from "../../pages/TodoPage.tsx";
 
-function App() {
+const App: React.FC = () => {
   return (
-    <div className="App">
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. Impedit eos ipsam est natus cum, repellat voluptatibus tenetur nesciunt sequi sint quibusdam nobis ipsa. Dolores laudantium assumenda rerum quos, placeat eius?
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<TodoPage />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
